@@ -1,0 +1,232 @@
+{
+  "site_title": "电磁场与电磁波长上下文知识库",
+  "nodes": [
+    {
+      "id": "index",
+      "label": "电磁场与电磁波长上下文知识库",
+      "type": "index"
+    },
+    {
+      "id": "01-fields-and-vectors",
+      "label": "矢量场、坐标系与库仑定律",
+      "type": "chapter"
+    },
+    {
+      "id": "02-gauss-law-and-flux",
+      "label": "高斯定律与电通量",
+      "type": "chapter"
+    },
+    {
+      "id": "03-potential-and-boundary-conditions",
+      "label": "电势、边界条件与导体",
+      "type": "chapter"
+    },
+    {
+      "id": "04-conductors-dielectrics",
+      "label": "导体、介质与极化",
+      "type": "chapter"
+    },
+    {
+      "id": "05-static-magnetism",
+      "label": "恒定磁场与安培定律",
+      "type": "chapter"
+    },
+    {
+      "id": "06-time-varying-fields",
+      "label": "时变电磁场与电磁感应",
+      "type": "chapter"
+    },
+    {
+      "id": "07-maxwell-equations",
+      "label": "麦克斯韦方程组与统一图景",
+      "type": "chapter"
+    },
+    {
+      "id": "08-plane-waves",
+      "label": "均匀平面波与传播特性",
+      "type": "chapter"
+    },
+    {
+      "id": "09-waveguides-transmission-lines",
+      "label": "传输线、驻波与波导",
+      "type": "chapter"
+    },
+    {
+      "id": "10-radiation-antennas",
+      "label": "辐射、天线与远场",
+      "type": "chapter"
+    }
+  ],
+  "edges": [
+    {
+      "source": "index",
+      "target": "01-fields-and-vectors",
+      "type": "contains"
+    },
+    {
+      "source": "01-fields-and-vectors",
+      "target": "02-gauss-law-and-flux",
+      "type": "related"
+    },
+    {
+      "source": "01-fields-and-vectors",
+      "target": "03-potential-and-boundary-conditions",
+      "type": "related"
+    },
+    {
+      "source": "index",
+      "target": "02-gauss-law-and-flux",
+      "type": "contains"
+    },
+    {
+      "source": "02-gauss-law-and-flux",
+      "target": "01-fields-and-vectors",
+      "type": "related"
+    },
+    {
+      "source": "02-gauss-law-and-flux",
+      "target": "03-potential-and-boundary-conditions",
+      "type": "related"
+    },
+    {
+      "source": "02-gauss-law-and-flux",
+      "target": "07-maxwell-equations",
+      "type": "related"
+    },
+    {
+      "source": "index",
+      "target": "03-potential-and-boundary-conditions",
+      "type": "contains"
+    },
+    {
+      "source": "03-potential-and-boundary-conditions",
+      "target": "02-gauss-law-and-flux",
+      "type": "related"
+    },
+    {
+      "source": "03-potential-and-boundary-conditions",
+      "target": "04-conductors-dielectrics",
+      "type": "related"
+    },
+    {
+      "source": "index",
+      "target": "04-conductors-dielectrics",
+      "type": "contains"
+    },
+    {
+      "source": "04-conductors-dielectrics",
+      "target": "03-potential-and-boundary-conditions",
+      "type": "related"
+    },
+    {
+      "source": "04-conductors-dielectrics",
+      "target": "07-maxwell-equations",
+      "type": "related"
+    },
+    {
+      "source": "index",
+      "target": "05-static-magnetism",
+      "type": "contains"
+    },
+    {
+      "source": "05-static-magnetism",
+      "target": "06-time-varying-fields",
+      "type": "related"
+    },
+    {
+      "source": "05-static-magnetism",
+      "target": "07-maxwell-equations",
+      "type": "related"
+    },
+    {
+      "source": "index",
+      "target": "06-time-varying-fields",
+      "type": "contains"
+    },
+    {
+      "source": "06-time-varying-fields",
+      "target": "05-static-magnetism",
+      "type": "related"
+    },
+    {
+      "source": "06-time-varying-fields",
+      "target": "07-maxwell-equations",
+      "type": "related"
+    },
+    {
+      "source": "06-time-varying-fields",
+      "target": "08-plane-waves",
+      "type": "related"
+    },
+    {
+      "source": "index",
+      "target": "07-maxwell-equations",
+      "type": "contains"
+    },
+    {
+      "source": "07-maxwell-equations",
+      "target": "02-gauss-law-and-flux",
+      "type": "related"
+    },
+    {
+      "source": "07-maxwell-equations",
+      "target": "06-time-varying-fields",
+      "type": "related"
+    },
+    {
+      "source": "07-maxwell-equations",
+      "target": "08-plane-waves",
+      "type": "related"
+    },
+    {
+      "source": "index",
+      "target": "08-plane-waves",
+      "type": "contains"
+    },
+    {
+      "source": "08-plane-waves",
+      "target": "07-maxwell-equations",
+      "type": "related"
+    },
+    {
+      "source": "08-plane-waves",
+      "target": "09-waveguides-transmission-lines",
+      "type": "related"
+    },
+    {
+      "source": "08-plane-waves",
+      "target": "10-radiation-antennas",
+      "type": "related"
+    },
+    {
+      "source": "index",
+      "target": "09-waveguides-transmission-lines",
+      "type": "contains"
+    },
+    {
+      "source": "09-waveguides-transmission-lines",
+      "target": "08-plane-waves",
+      "type": "related"
+    },
+    {
+      "source": "09-waveguides-transmission-lines",
+      "target": "10-radiation-antennas",
+      "type": "related"
+    },
+    {
+      "source": "index",
+      "target": "10-radiation-antennas",
+      "type": "contains"
+    },
+    {
+      "source": "10-radiation-antennas",
+      "target": "08-plane-waves",
+      "type": "related"
+    },
+    {
+      "source": "10-radiation-antennas",
+      "target": "09-waveguides-transmission-lines",
+      "type": "related"
+    }
+  ]
+}
