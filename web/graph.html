@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>知识图谱可视化 - Karpathy风格长上下文知识库</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        #container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            overflow: hidden;
+        }
+
+        #header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px 40px;
+            text-align: center;
+        }
+
+        #header h1 {
+            font-size: 2em;
+            margin-bottom: 10px;
+        }
+
+        #header p {
+            font-size: 1em;
+            opacity: 0.9;
+        }
+
+        #controls {
+            padding: 20px 40px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e0e0e0;
+            display: flex;
+            gap: 20px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .control-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        label {
+            font-weight: 500;
+            color: #333;
+        }
+
+        button, input, select {
+            padding: 8px 16px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 0.95em;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        button {
+            background: #3498db;
+            color: white;
+            border: none;
+            font-weight: 500;
+        }
+
+        button:hover {
+            background: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+        }
+
+        input[type="text"] {
+            min-width: 200px;
+        }
+
+        #graph-container {
+            position: relative;
+            width: 100%;
+            height: 600px;
+            background: #fff;
+            border-top: 1px solid #e0e0e0;
+        }
+
+        svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .node {
+            fill: #667eea;
+            stroke: #fff;
+            stroke-width: 2px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .node:hover {
+            fill: #764ba2;
+            r: 8;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+        }
+
+        .node.index {
+            fill: #e74c3c;
+        }
+
+        .node.chapter {
+            fill: #3498db;
+        }
+
+        .link {
+            stroke: #999;
+            stroke-opacity: 0.6;
+            stroke-width: 2px;
+        }
+
+        .link.contains {
+            stroke: #e74c3c;
+            stroke-opacity: 0.4;
+        }
+
+        .link.related {
+            stroke: #2ecc71;
+            stroke-opacity: 0.3;
+            stroke-dasharray: 5, 5;
+        }
+
+        text.label {
+            font-size: 11px;
+            fill: #333;
+            pointer-events: none;
+            text-anchor: middle;
+            dy: ".3em";
+        }
+
+        #info-panel {
+            padding: 20px 40px;
+            background: #f8f9fa;
+            border-top: 1px solid #e0e0e0;
+            min-height: 120px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .info-item {
+            margin-bottom: 10px;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #667eea;
+            display: inline-block;
+            min-width: 100px;
+        }
+
+        .info-value {
+            color: #333;
+        }
+
+        .legend {
+            display: flex;
+            gap: 30px;
+            flex-wrap: wrap;
+            font-size: 0.9em;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .legend-color {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            border: 2px solid white;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #999;
+        }
+
+        .error {
+            background: #fee;
+            color: #c33;
+            padding: 20px;
+            border-radius: 4px;
+            margin: 20px 40px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="header">
+            <h1>📊 知识图谱可视化</h1>
+            <p>Karpathy风格长上下文知识库 - 交互式概念关系网络</p>
+        </div>
+
+        <div id="controls">
+            <div class="control-group">
+                <label for="search">搜索节点：</label>
+                <input type="text" id="search" placeholder="输入页面标题...">
+                <button onclick="highlightNode()">搜索</button>
+            </div>
+            <div class="control-group">
+                <button onclick="resetZoom()">重置视图</button>
+                <button onclick="exportSVG()">导出SVG</button>
+            </div>
+            <div style="margin-left: auto; padding: 10px 20px; background: white; border-radius: 4px;">
+                <div class="legend">
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #e74c3c;"></div>
+                        <span>首页</span>
+                    </div>
+                    <div class="legend-item">
+                        <div class="legend-color" style="background: #3498db;"></div>
+                        <span>章节</span>
+                    </div>
+                    <div class="legend-item" style="gap: 4px;">
+                        <svg width="16" height="16" style="stroke: #e74c3c; stroke-width: 2;"><line x1="0" y1="8" x2="16" y2="8"></line></svg>
+                        <span>包含</span>
+                    </div>
+                    <div class="legend-item" style="gap: 4px;">
+                        <svg width="16" height="16" style="stroke: #2ecc71; stroke-width: 2; stroke-dasharray: 4;"><line x1="0" y1="8" x2="16" y2="8"></line></svg>
+                        <span>关联</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="graph-container">
+            <div class="loading">加载中...</div>
+        </div>
+
+        <div id="info-panel">
+            <div style="color: #999;">点击节点查看详细信息</div>
+        </div>
+    </div>
+
+    <script>
+        let graph = null;
+        let svg = null;
+        let g = null;
+        let simulation = null;
+        const graphFile = "../data/graph.json";
+
+        async function loadGraph() {
+            try {
+                const response = await fetch(graphFile);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                graph = await response.json();
+                initGraph();
+            } catch (error) {
+                const container = document.getElementById("graph-container");
+                container.innerHTML = `<div class="error">❌ 加载失败：${error.message}<br/>请确保已运行 compile_raw_llm.py</div>`;
+            }
+        }
+
+        function initGraph() {
+            const container = document.getElementById("graph-container");
+            container.innerHTML = "";
+
+            const width = container.clientWidth;
+            const height = container.clientHeight;
+
+            svg = d3.select("#graph-container")
+                .append("svg")
+                .attr("width", width)
+                .attr("height", height);
+
+            const defs = svg.append("defs");
+            defs.append("marker")
+                .attr("id", "arrowhead")
+                .attr("markerWidth", 10)
+                .attr("markerHeight", 10)
+                .attr("refX", 20)
+                .attr("refY", 5)
+                .attr("orient", "auto")
+                .append("polygon")
+                .attr("points", "0 0, 10 5, 0 10")
+                .attr("fill", "#999");
+
+            g = svg.append("g");
+
+            const zoom = d3.zoom().on("zoom", (event) => {
+                g.attr("transform", event.transform);
+            });
+            svg.call(zoom);
+
+            simulation = d3.forceSimulation(graph.nodes)
+                .force("link", d3.forceLink(graph.edges)
+                    .id(d => d.id)
+                    .distance(100)
+                    .strength(0.5))
+                .force("charge", d3.forceManyBody().strength(-300))
+                .force("center", d3.forceCenter(width / 2, height / 2))
+                .force("collision", d3.forceCollide().radius(30));
+
+            const links = g.selectAll(".link")
+                .data(graph.edges)
+                .enter()
+                .append("line")
+                .attr("class", d => `link ${d.type}`)
+                .attr("marker-end", "url(#arrowhead)");
+
+            const nodes = g.selectAll(".node")
+                .data(graph.nodes)
+                .enter()
+                .append("circle")
+                .attr("class", d => `node ${d.type}`)
+                .attr("r", d => d.type === "index" ? 10 : 6)
+                .call(d3.drag()
+                    .on("start", dragStarted)
+                    .on("drag", dragged)
+                    .on("end", dragEnded))
+                .on("click", (event, d) => {
+                    event.stopPropagation();
+                    showInfo(d);
+                });
+
+            const labels = g.selectAll("text")
+                .data(graph.nodes)
+                .enter()
+                .append("text")
+                .attr("class", "label")
+                .text(d => d.label)
+                .attr("font-size", d => d.type === "index" ? 12 : 10)
+                .attr("font-weight", d => d.type === "index" ? "bold" : "normal");
+
+            simulation.on("tick", () => {
+                links
+                    .attr("x1", d => d.source.x)
+                    .attr("y1", d => d.source.y)
+                    .attr("x2", d => d.target.x)
+                    .attr("y2", d => d.target.y);
+
+                nodes
+                    .attr("cx", d => d.x)
+                    .attr("cy", d => d.y);
+
+                labels
+                    .attr("x", d => d.x)
+                    .attr("y", d => d.y);
+            });
+
+            svg.on("click", () => {
+                showInfo(null);
+            });
+        }
+
+        function dragStarted(event, d) {
+            if (!event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(event, d) {
+            d.fx = event.x;
+            d.fy = event.y;
+        }
+
+        function dragEnded(event, d) {
+            if (!event.active) simulation.alphaTarget(0);
+            d.fx = null;
+            d.fy = null;
+        }
+
+        function showInfo(node) {
+            const panel = document.getElementById("info-panel");
+            if (!node) {
+                panel.innerHTML = '<div style="color: #999;">点击节点查看详细信息</div>';
+                return;
+            }
+
+            let html = `
+                <div class="info-item"><span class="info-label">标题：</span><span class="info-value">${node.label}</span></div>
+                <div class="info-item"><span class="info-label">类型：</span><span class="info-value">${node.type === "index" ? "首页" : "章节"}</span></div>
+            `;
+
+            const related = graph.edges.filter(e => e.source.id === node.id || e.target.id === node.id);
+            if (related.length > 0) {
+                html += `<div class="info-item"><span class="info-label">关联：</span><span class="info-value">${related.length} 个连接</span></div>`;
+            }
+
+            panel.innerHTML = html;
+        }
+
+        function highlightNode() {
+            const searchTerm = document.getElementById("search").value.toLowerCase();
+            const nodes = d3.selectAll(".node");
+            const labels = d3.selectAll("text.label");
+
+            nodes.style("opacity", d => 
+                d.label.toLowerCase().includes(searchTerm) || !searchTerm ? 1 : 0.2
+            );
+            labels.style("opacity", d => 
+                d.label.toLowerCase().includes(searchTerm) || !searchTerm ? 1 : 0.2
+            );
+
+            if (searchTerm) {
+                const matching = graph.nodes.find(d => d.label.toLowerCase().includes(searchTerm));
+                if (matching) {
+                    showInfo(matching);
+                }
+            }
+        }
+
+        function resetZoom() {
+            svg.transition().duration(750).call(
+                d3.zoom().transform,
+                d3.zoomIdentity.translate(svg.attr("width") / 2, svg.attr("height") / 2).scale(1)
+            );
+            simulation.alpha(1).restart();
+        }
+
+        function exportSVG() {
+            const svgData = new XMLSerializer().serializeToString(svg.node());
+            const blob = new Blob([svgData], { type: "image/svg+xml" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.href = url;
+            link.download = "knowledge-graph.svg";
+            link.click();
+        }
+
+        document.getElementById("search").addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                highlightNode();
+            }
+        });
+
+        loadGraph();
+    </script>
+</body>
+</html>
